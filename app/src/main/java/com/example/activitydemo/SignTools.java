@@ -53,7 +53,7 @@ public class SignTools {
             apkDateReverse = null;
             apkTopSignData = null;
         }
-        apkData = readFileBytes(originPath);
+        apkData = readBigFileBytes(originPath);
         apkDateReverse = new byte[apkData.length];
         apkTopSignData = new byte[61];
         System.arraycopy(apkData,0,apkDateReverse,0,apkData.length);
@@ -98,7 +98,7 @@ public class SignTools {
      * @deprecated 提取apk中附加的签名数据并对其解密并与对apk做SHA256摘要后的数据作对比
      * @return true:摘要相同 flase:摘要不相同
      */
-    public Boolean testApkSign(String originPath) throws IOException {
+    public Boolean testApkSign(String originPath) {
         //读取签名数据偏移量
         Boolean flag = false;
         int signDataOfset = getDatalenth(90, 98);
@@ -187,8 +187,8 @@ public class SignTools {
         return (int) Long.parseLong(String.valueOf(originalData),16);
     }
 
-    //
-    private byte[] readFileBytes(String path) throws IOException {
+    //读取文件,小文件，如果超出缓存空间则会报错
+    private byte[] readSmallFileBytes(String path) throws IOException {
         byte[] data = new byte[1024];
         File file = new File(path);
         FileInputStream fileInputStream = new FileInputStream(file);
@@ -201,6 +201,22 @@ public class SignTools {
                 return byteArrayOutputStream.toByteArray();
             }
         }
+    }
+    //可读取较大文件
+    private byte[] readBigFileBytes(String path) {
+        byte[] buffer = null;
+        try {
+            File file = new File(path);
+            FileInputStream in = new FileInputStream(file);
+            int fileLength = in.available();
+            buffer = new byte[fileLength];
+            in.read(buffer);
+            in.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return buffer;
     }
 
     /**
